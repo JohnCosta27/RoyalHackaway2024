@@ -31,7 +31,7 @@
         backgroundImage.src = 'wiiBoard/assets/RhulBackground.jpg'; // Replace with actual path
         // Wait for the background image to load
         backgroundImage.onload = function() {
-            // Draw the background image on the canvas
+            // Draw the background image on the canvas 
             ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
         };
 
@@ -39,6 +39,7 @@
             // Clear the canvas
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+
             // Display the current arrow
             const currentArrow = arrowImages[currentArrowIndex];
             ctx.drawImage(currentArrow, 0, 0, canvas.width, canvas.height);
@@ -50,15 +51,15 @@
         // Set up a timer to display arrows every 3 seconds (adjust as needed)
         setInterval(displayArrow, 3000);
 
-        // TODO: Implement Wii Balance Board input handling and comparison logic
-        // ...
-
-        // For testing purposes, you can simulate arrow press by clicking on the canvas
+        // Implement Wii Balance Board input handling and comparison logic
+        // For testing purposes, simulate arrow press by clicking on the canvas
         canvas.addEventListener('click', handleCanvasClick);
 
         function handleCanvasClick() {
             // Simulate arrow press, replace this with Wii Balance Board logic
-            console.log(`Pressed direction: ${directions[currentArrowIndex]}`);
+            // Log the direction of the arrow that is currently being displayed
+            const currentDisplayedArrowIndex = (currentArrowIndex - 1 + arrowImages.length) % arrowImages.length;
+            console.log(`Pressed direction: ${directions[currentDisplayedArrowIndex]}`);
         }
     </script>
 </body>
