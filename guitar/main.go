@@ -4,11 +4,47 @@ import (
 	"fmt"
 	"math"
 	"math/cmplx"
+	"net/http"
 	"slices"
 
 	"github.com/gordonklaus/portaudio"
+	"github.com/gorilla/websocket"
 	"gonum.org/v1/gonum/dsp/fourier"
 )
+
+func IsAllEqual(slice []float64, val float64) bool {
+	for _, v := range slice {
+		if v != val {
+			return false
+		}
+	}
+	return true
+}
+
+func MostCommon(slice []Note) Note {
+	m := make(map[Note]int)
+
+	for _, s := range slice {
+		_, exists := m[s]
+		if exists {
+			m[s] += 1
+		} else {
+			m[s] = 1
+		}
+	}
+
+	maxNote := Note{}
+	maxNoteCounter := 0
+
+	for k, v := range m {
+		if v > maxNoteCounter {
+			maxNoteCounter = v
+			maxNote = k
+		}
+	}
+
+	return maxNote
+}
 
 func main() {
 	portaudio.Initialize()
@@ -22,21 +58,66 @@ func main() {
 
 	findNote()
 
+	// ticker := time.NewTicker(time.Millisecond * 200)
+	// go func() {
+	// 	for range ticker.C {
+	// 		if Con == nil {
+	// 			continue
+	// 		}
+	//
+	// 		common := MostCommon(previousNotes)
+	// 		n := notes[common.RealFreq]
+	// 		if len(n) == 0 {
+	// 			continue
+	// 		}
+	//
+	// 		Con.WriteMessage(websocket.TextMessage, []byte(n))
+	// 		previousNotes = make([]Note, 0)
+	// 	}
+	// }()
+
+	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+		serveWs(w, r)
+	})
+
+	go func() {
+		http.ListenAndServe(":3000", nil)
+	}()
+
 	err = stream.Start()
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Println("Capturing audio. Press Enter to stop.")
 	fmt.Scanln()
 
 	err = stream.Stop()
 	if err != nil {
 		panic(err)
 	}
+
 }
 
-var NOISE float64 = 0.5
+var upgrader = websocket.Upgrader{
+	// CORS, for now just allow all origins
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
+
+var Con *websocket.Conn
+
+func serveWs(w http.ResponseWriter, r *http.Request) {
+	con, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	Con = con
+}
+
+var NOISE float64 = 0.1
+var previousNotes []Note
 
 func processAudio(in []float32) {
 	// Convert float32 slice to a complex128 slice as required by the FFT function
@@ -52,21 +133,19 @@ func processAudio(in []float32) {
 	}
 
 	fft := fourier.NewFFT(len(fftInput))
-
 	coefficients := fft.Coefficients(nil, fftInput)
-
-	// Find the dominant frequency
 	dominantFreq := findDominantFrequency(coefficients, 44100)
 
 	for _, v := range noteList {
 		if v.IsNote(dominantFreq) {
 			note := notes[v.RealFreq]
-			fmt.Println("Note: ", note)
+			fmt.Println("Note: " + note)
+			if Con != nil {
+				Con.WriteMessage(websocket.TextMessage, []byte(note))
+			}
 			break
 		}
 	}
-
-	// fmt.Printf("Dominant Frequency: %.2f Hz\n", dominantFreq)
 }
 
 type Note struct {
@@ -206,13 +285,11 @@ func findNote() {
 	noteList = make([]Note, len(notes)-2)
 
 	for i := 1; i < len(noteFreqArray)-1; i++ {
-		diffHigh := noteFreqArray[i+1] - noteFreqArray[i]
 		diffLow := noteFreqArray[i] - noteFreqArray[i-1]
+		diffHigh := noteFreqArray[i+1] - noteFreqArray[i]
 
-		x := diffHigh / 2
-		y := diffLow / 2
+		note := Note{min: noteFreqArray[i] - diffLow/2, max: noteFreqArray[i] + diffHigh/2, RealFreq: noteFreqArray[i]}
 
-		note := Note{min: noteFreqArray[i] - y, max: noteFreqArray[i] + x, RealFreq: noteFreqArray[i]}
 		noteList[i-1] = note
 	}
 }
