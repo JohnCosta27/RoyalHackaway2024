@@ -11,7 +11,7 @@ def main():
     try:
         adapter.start()
 
-        device = adapter.connect('01:23:45:67:89:AB')  # Replace with your Wii Balance Board's Bluetooth address
+        device = adapter.connect('00:23:31:82:C7:OF')  # Replace with your Wii Balance Board's Bluetooth address
 
         # Subscribe to the Balance Board's characteristic
         device.subscribe('0000fe10-0000-1000-8000-00805f9b34fb', callback=handle_data)
