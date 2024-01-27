@@ -6,7 +6,7 @@
     <title>Wii Balance Board Game - Hackaway2024</title>
     <style>
         canvas {
-            border: 1px solid #000;
+            border: 10px solid #CC6829;
         }
     </style>
 </head>
@@ -15,7 +15,16 @@
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        
+
+        // Create an Image object
+        const image = new Image();
+        // Set the source of the image
+        image.src = 'wiiBoard/assets/RhulBackground.jpg';
+        // Wait for the image to load
+        image.onload = function() {
+            // Draw the image on the canvas
+            ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+        };
     </script>
 </body>
 </html>
