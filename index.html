@@ -12,12 +12,18 @@
 </head>
 <body>
     <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <div id="message"></div>
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const arrowImages = [];
         const directions = ['Up', 'Down', 'Left', 'Right'];
         let currentArrowIndex = 0;
+        let lastArrowDisplayTime;
+
+        // Constants
+        const ARROW_DISPLAY_INTERVAL = 3000;
+        const MESSAGE_DISPLAY_DURATION = 2500;
 
         // Load arrow images
         for (const direction of directions) {
@@ -36,30 +42,58 @@
         };
 
         function displayArrow() {
-            // Clear the canvas
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
-
-            // Display the current arrow
-            const currentArrow = arrowImages[currentArrowIndex];
-            ctx.drawImage(currentArrow, 0, 0, canvas.width, canvas.height);
-
-            // Increase the arrow index or reset if reached the end
+            clearCanvas();
+            drawBackground();
+            drawCurrentArrow();
+            lastArrowDisplayTime = Date.now();
             currentArrowIndex = (currentArrowIndex + 1) % arrowImages.length;
         }
 
-        // Set up a timer to display arrows every 3 seconds (adjust as needed)
-        setInterval(displayArrow, 3000);
+        setInterval(displayArrow, ARROW_DISPLAY_INTERVAL);
 
-        // Implement Wii Balance Board input handling and comparison logic
-        // For testing purposes, simulate arrow press by clicking on the canvas
         canvas.addEventListener('click', handleCanvasClick);
 
-        function handleCanvasClick() {
-            // Simulate arrow press, replace this with Wii Balance Board logic
-            // Log the direction of the arrow that is currently being displayed
-            const currentDisplayedArrowIndex = (currentArrowIndex - 1 + arrowImages.length) % arrowImages.length;
-            console.log(`Pressed direction: ${directions[currentDisplayedArrowIndex]}`);
+        function handleCanvasClick(event) {
+            const timeElapsed = Date.now() - lastArrowDisplayTime;
+            const pressedDirection = calculatePressedDirection(event.clientX, event.clientY);
+            const message = determineMessage(timeElapsed, pressedDirection);
+            displayMessage(message);
+        }
+
+        function calculatePressedDirection(x, y) {
+            return (x < canvas.width / 2) ? ((y < canvas.height / 2) ? 'Up' : 'Down') : ((y < canvas.height / 2) ? 'Left' : 'Right');
+        }
+
+        function determineMessage(timeElapsed, pressedDirection) {
+            let message = `Pressed direction: ${pressedDirection}, `;
+            if (timeElapsed < 1000) {
+                message += 'Brilliant!';
+            } else if (timeElapsed < 2000) {
+                message += 'Well Done!';
+            } else {
+                message += 'Too Slow';
+            }
+            return message;
+        }
+
+        function displayMessage(message) {
+            document.getElementById('message').innerText = message;
+            setTimeout(() => {
+                document.getElementById('message').innerText = '';
+            }, MESSAGE_DISPLAY_DURATION);
+        }
+
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function drawBackground() {
+            ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+        }
+
+        function drawCurrentArrow() {
+            const currentArrow = arrowImages[currentArrowIndex];
+            ctx.drawImage(currentArrow, 0, 0, canvas.width, canvas.height);
         }
     </script>
 </body>
