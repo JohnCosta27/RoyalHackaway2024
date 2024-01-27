@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wii Balance Board Game - Hackaway2024</title>
+    <title>Dance Game - Hackaway2024</title>
     <style>
         canvas {
             border: 10px solid #CC6829;
@@ -15,16 +15,51 @@
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
+        const arrowImages = [];
+        const directions = ['Up', 'Down', 'Left', 'Right'];
+        let currentArrowIndex = 0;
 
-        // Create an Image object
-        const image = new Image();
-        // Set the source of the image
-        image.src = 'wiiBoard/assets/RhulBackground.jpg';
-        // Wait for the image to load
-        image.onload = function() {
-            // Draw the image on the canvas
-            ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+        // Load arrow images
+        for (const direction of directions) {
+            const arrowImage = new Image();
+            arrowImage.src = `wiiBoard/assets/${direction}.jpg`; // Replace with actual paths
+            arrowImages.push(arrowImage);
+        }
+
+        // Create an Image object for the background
+        const backgroundImage = new Image();
+        backgroundImage.src = 'wiiBoard/assets/RhulBackground.jpg'; // Replace with actual path
+        // Wait for the background image to load
+        backgroundImage.onload = function() {
+            // Draw the background image on the canvas
+            ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
         };
+
+        function displayArrow() {
+            // Clear the canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+            // Display the current arrow
+            const currentArrow = arrowImages[currentArrowIndex];
+            ctx.drawImage(currentArrow, 0, 0, canvas.width, canvas.height);
+
+            // Increase the arrow index or reset if reached the end
+            currentArrowIndex = (currentArrowIndex + 1) % arrowImages.length;
+        }
+
+        // Set up a timer to display arrows every 3 seconds (adjust as needed)
+        setInterval(displayArrow, 3000);
+
+        // TODO: Implement Wii Balance Board input handling and comparison logic
+        // ...
+
+        // For testing purposes, you can simulate arrow press by clicking on the canvas
+        canvas.addEventListener('click', handleCanvasClick);
+
+        function handleCanvasClick() {
+            // Simulate arrow press, replace this with Wii Balance Board logic
+            console.log(`Pressed direction: ${directions[currentArrowIndex]}`);
+        }
     </script>
 </body>
 </html>
