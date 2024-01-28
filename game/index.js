@@ -5,13 +5,51 @@ let lastMove = "";
 let notesPlayed = [];
 let noteHit = false;
 
+const PAD_WIDTH = 175;
+const PAD_HEIGHT = 125;
+const R = 10;
+const GAP = 200;
+
+const h = () => window.innerHeight;
+const w = () => window.innerWidth;
+
 let dance1 = {
   noteHit: false,
   movesPlayed: [],
   beatsSinceLastNote: 0,
+
+  x: w() - GAP - PAD_WIDTH / 2,
+  y: h() - GAP - PAD_HEIGHT / 2,
 };
 
-let dancePads = [dance1];
+let dance2 = {
+  noteHit: false,
+  movesPlayed: [],
+  beatsSinceLastNote: 0,
+
+  x: w() - GAP - PAD_WIDTH / 2,
+  y: GAP - PAD_HEIGHT / 2,
+};
+
+let dance3 = {
+  noteHit: false,
+  movesPlayed: [],
+  beatsSinceLastNote: 0,
+
+  x: GAP - PAD_WIDTH / 2,
+  y: h() - GAP - PAD_HEIGHT / 2,
+};
+
+let dance4 = {
+  noteHit: false,
+  movesPlayed: [],
+  beatsSinceLastNote: 0,
+
+  x: GAP - PAD_WIDTH / 2,
+  y: GAP - PAD_HEIGHT / 2,
+};
+
+let dancePads = [dance1, dance2, dance3, dance4];
 
 function onLoad() {
   const ws = new WebSocket("ws://127.0.0.1:3000/ws");
@@ -50,8 +88,6 @@ function onLoad() {
 //   return notes[noteIndex];
 // }
 //
-const h = () => window.innerHeight;
-const w = () => window.innerWidth;
 
 function loop() {
   /**
@@ -84,15 +120,49 @@ function loop() {
 
   // Dance pads
 
-  context.fillRect(100, 100, 100, 100);
-  if (lastMove === "TOP LEFT") {
-    context.arc(25, 25, 10, 0, 2 * Math.PI);
-  } else if (lastMove === "TOP RIGHT") {
-    context.arc(75, 25, 10, 0, 2 * Math.PI);
-  } else if (lastMove === "BOTTOM LEFT") {
-    context.arc(25, 75, 10, 0, 2 * Math.PI);
-  } else if (lastMove === "BOTTOM RIGHT") {
-    context.arc(75, 75, 10, 0, 2 * Math.PI);
+  for (const pad of dancePads) {
+    context.fillStyle = "white";
+    context.fillRect(pad.x, pad.y, PAD_WIDTH, PAD_HEIGHT);
+
+    debugger;
+
+    context.fillStyle = "red";
+    context.beginPath();
+    if (lastMove === "UP") {
+      context.arc(
+        pad.x + PAD_WIDTH / 2,
+        pad.y + PAD_HEIGHT / 4,
+        R,
+        0,
+        2 * Math.PI
+      );
+    } else if (lastMove === "BOTTOM") {
+      context.arc(
+        pad.x + PAD_WIDTH / 2,
+        pad.y + (PAD_HEIGHT / 4) * 3,
+        R,
+        0,
+        2 * Math.PI
+      );
+    } else if (lastMove === "LEFT") {
+      context.arc(
+        pad.x + PAD_WIDTH / 4,
+        pad.y + PAD_HEIGHT / 2,
+        R,
+        0,
+        2 * Math.PI
+      );
+    } else if (lastMove === "RIGHT") {
+      context.arc(
+        pad.x + (PAD_WIDTH / 4) * 3,
+        pad.y + PAD_HEIGHT / 2,
+        R,
+        0,
+        2 * Math.PI
+      );
+    }
+
+    context.fill();
   }
 
   window.requestAnimationFrame(loop);
@@ -146,15 +216,15 @@ const DANCE_TRACK = [
   "",
   "",
   "",
-  "TOP LEFT",
+  "LEFT",
   "",
   "",
   "",
-  "TOP RIGHT",
+  "RIGHT",
   "",
   "",
   "",
-  "BOTTOM RIGHT",
+  "UP",
   "",
   "",
   "",
@@ -215,8 +285,6 @@ setInterval(() => {
       notesPlayed = [];
     }
   }
-
-  console.log(note);
 }, INTERVAL);
 
 window.onload = onLoad;
